@@ -6,7 +6,8 @@
   <title>Insert title here</title></head>
 <body>
 
-<form action="SignIn" method="post">
+<form action="Controller" method="post">
+ <input type="hidden" name="command" value="sign_in"/>
   Введите логин:<br/>
   <input type="text" name="login" value=""/><br/>
   Введите пароль:<br/>
@@ -20,3 +21,5 @@
 
 </body>
 </html>
+
+
