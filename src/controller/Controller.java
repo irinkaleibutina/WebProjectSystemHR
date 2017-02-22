@@ -2,6 +2,7 @@ package controller;
 
 import controller.command.Command;
 import controller.command.exception.CommandException;
+import dao.exception.DAOException;
 
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -36,12 +37,14 @@ public class Controller extends HttpServlet {
         try {
             commandName = request.getParameter(COMMAND);
             command = provider.getCommand(commandName);
-            goTo = command.execute(request);
+            goTo = command.execute(request,response);
             RequestDispatcher dispatcher = request.getRequestDispatcher(goTo);
 
             dispatcher.forward(request, response);
         } catch (CommandException e) {
             request.getRequestDispatcher(ERROR).forward(request, response);
+        } catch (DAOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -55,10 +58,12 @@ public class Controller extends HttpServlet {
         try {
             commandName = request.getParameter(COMMAND);
             command = provider.getCommand(commandName);
-            goTo = command.execute(request);
+            goTo = command.execute(request, response);
             response.sendRedirect(goTo);
         } catch (CommandException e) {
             request.getRequestDispatcher(ERROR).forward(request, response);
+        } catch (DAOException e) {
+            e.printStackTrace();
         }
     }
 }

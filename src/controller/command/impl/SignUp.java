@@ -16,6 +16,8 @@ public class SignUp implements Command {
     @Override
     public String execute(HttpServletRequest request, HttpServletResponse response)
             throws CommandException, ServletException, IOException {
+
+        System.out.println("SignUp");
         RequestDispatcher requestDispatcher = request.getRequestDispatcher("/WEB-INF/jsp/signUp.jsp");
         requestDispatcher.forward(request, response);
         return null;

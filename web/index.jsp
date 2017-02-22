@@ -3,20 +3,24 @@
 <html>
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <title>Insert title here</title></head>
+  <title>SystemHR</title></head>
 <body>
 
 <form action="Controller" method="post">
  <input type="hidden" name="command" value="sign_in"/>
   Введите логин:<br/>
-  <input type="text" name="login" value=""/><br/>
+  <input type="text" name="login"/><br/>
   Введите пароль:<br/>
-  <input type="text" name="password" value=""/><br/>
+  <input type="password" name="password"/><br/>
   <input type="submit" value="Войти"/>
 </form>
 
-<form action="SignUp" method="post">
-  <input type="submit" value="Регистрация"/>
+<form action="Controller" method="post">
+  <input type="hidden" name="command" value="sign_up"/>
+  <input type="submit" value="Регистрация"
+      onclick= href="Controller?action=redirect&page=/WEB-INF/jsp/signUp.jsp">hhjh/>
+
+
 </form>
 
 </body>
