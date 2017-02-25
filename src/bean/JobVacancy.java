@@ -3,7 +3,7 @@ package bean;
 /**
  * Created by irinaleibutina on 25.02.17.
  */
-public class jobVacancy {
+public class JobVacancy {
 
     private int id;
     private String jobTitle;
