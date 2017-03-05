@@ -7,7 +7,7 @@ public class JobVacancy {
 
     private int id;
     private String jobTitle;
-    private boolean currentStatus;
+    private String currentStatus;
     private String description;
 
     public int getId() {
@@ -26,11 +26,11 @@ public class JobVacancy {
         this.jobTitle = jobTitle;
     }
 
-    public boolean isCurrentStatus() {
+    public String getCurrentStatus() {
         return currentStatus;
     }
 
-    public void setCurrentStatus(boolean currentStatus) {
+    public void setCurrentStatus(String currentStatus) {
         this.currentStatus = currentStatus;
     }
 
