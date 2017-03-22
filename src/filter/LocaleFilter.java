@@ -12,18 +12,19 @@ import java.io.IOException;
 /**
  * Created by irinaleibutina on 21.03.17.
  */
-public class LocaleFilter implements Filter{
+public class LocaleFilter implements Filter {
 
     private static final String ATTR_LOCALE = "locale";
     private static final String EN_LOCALE = "eng";
     private static final String RU_LOCALE = "ru";
     private String locale;
 
-    public LocaleFilter(){}
+    public LocaleFilter() {
+    }
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-locale = EN_LOCALE;
+        locale = RU_LOCALE;
     }
 
     @Override
