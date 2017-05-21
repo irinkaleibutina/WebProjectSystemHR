@@ -3,7 +3,9 @@ package dao;
 import dao.exception.DAOException;
 
 /**
- * Created by irinaleibutina on 09.04.17.
+ * Interface {@code ApplicantJobVacancyDAO} is the class, that contains methods
+ * to work with job vacancy info in the data base.
+ * @author irinaleibutina
  */
 public interface ApplicantJobVacancyDAO {
 

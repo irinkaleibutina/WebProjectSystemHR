@@ -1,14 +1,11 @@
 package dao.impl;
 
-import bean.Applicant;
-import bean.Interview;
-import bean.InterviewResult;
-import bean.JobVacancy;
+import bean.*;
 import dao.ApplicantDAO;
-import dao.connectionpool.ConnectionPool;
-import dao.connectionpool.ConnectionPoolException;
-import dao.connectionpool.ConnectionPoolFactory;
 import dao.exception.DAOException;
+import dao.pool.ConnectionPool;
+import dao.pool.exception.ConnectionPoolException;
+import dao.pool.impl.ConnectionPoolImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,107 +16,73 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static dao.util.columnName.ApplicantColumnName.*;
+import static dao.util.columnName.SkillsColumnName.*;
+import static dao.util.sql.ApplicantSQL.*;
+
 /**
- * Created by irinaleibutina on 29.03.17.
+ * Class that provides methods for mysql db.
+ * Implements {@link src.dao.ApplicantDAO}
  */
 public class ApplicantDAOImpl implements ApplicantDAO {
+
     private static final Logger logger = LogManager.getLogger(ApplicantDAOImpl.class.getName());
 
-    private static final String APPLICANT_INFORMATION = "SELECT * FROM mydb.applicant";
-    private static final String APPLICANT_REGISTRATION = "INSERT INTO mydb.applicant(appl_id,appl_name,appl_surname, password, login, email) " +
-            "VALUES (LAST_INSERT_ID(),?,?,SHA2(?,256),?,?)";
-    private final static String DELETE_APPLICANT = "update mydb.applicant set current_status = 'N' where login= ?";
-    private final static String SEARCH_APPLICANT = "SELECT * FROM mydb.applicant WHERE appl_name = ? AND appl_surname = ? AND current_status = 'A'";
-    private static final String APPLICANT = "SELECT * FROM mydb.applicant WHERE login=? AND password=(SHA2(?,256))";
-    private static final String ADMIN = "SELECT * FROM mydb.employeeHR WHERE login=?";
-    private static final String APPLICANT_JOBVACANCY = "SELECT job_title FROM mydb.job_vacancy " +
-            "where job_vac_id = (select job_vacancy_job_vac_id from mydb.applicant_job_vacancy " +
-            "where applicant_appl_id = ?)";
-    private static final String APPLICANT_INTERVIEW = "SELECT * FROM mydb.interview WHERE interview_id = ?";
-    private static final String UPDATE_APPLICANT = "UPDATE mydb.applicant SET " +
-            "appl_name = ?, appl_surname = ?,country = ?, city = ?, email =?," +
-            "phone_number = ?, education=?, prof_skills = ? WHERE appl_id =?";
-
-    private static final String LOGIN = "login";
-    private static final String PASSWORD = "password";
-    private static final String PHONE_NUMBER = "phone_number";
-    private static final String EMAIL = "email";
-    private static final String APPLICANT_ID = "appl_id";
-    private static final String APPLICANT_NAME = "appl_name";
-    private static final String APPLICANT_SURNAME = "appl_surname";
-    private static final String COUNTRY = "country";
-    private static final String CITY = "city";
-    private static final String EDUCATION = "education";
-    private static final String PROFESSIONAL_SKILLS = "prof_skills";
-    private static final String  JOB_TITLE = "job_title";
-    private static final String INTERVIEW_ID = "interview_id";
-    private static final String PRELIMINARY_INTERVIEW = "preliminary_interview";
-    private static final String TECHNICAL_INTERVIEW = "technical_interview";
-    private static final String COMMON_INTERVIEW_RESULT = "common_result";
-    private static final String DATE_PRE_INT = "date_pre_int";
-    private static final String TIME_PRE_INT = "time_pre_int";
-    private static final String DATE_TEC_INT = "date_tec_int";
-    private static final String TIME_TEC_INT = "time_tec_int";
-
+    /**
+     * Gets applicants from db
+     *
+     * @return list of instances of {@link Applicant}
+     * @throws DAOException
+     */
     @Override
     public List<Applicant> getApplicants() throws DAOException {
-        List<Applicant> applicants = new ArrayList<>();
 
-        ConnectionPoolFactory factory = ConnectionPoolFactory.getInstance();
-        ConnectionPool connectionPool = factory.getPool();
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-        try {
-            connection = connectionPool.getConnection();
-            preparedStatement = connection.prepareStatement(APPLICANT_INFORMATION);
-            resultSet = preparedStatement.executeQuery();
-            applicants = applicantData(resultSet);
+        List<Applicant> applicants = new ArrayList<>();
+        ConnectionPool connectionPool = ConnectionPoolImpl.getInstance();
+
+        try (Connection connection = connectionPool.getConnection()) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(APPLICANT_INFORMATION)) {
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    applicants = applicantData(resultSet);
+                }
+            }
         } catch (SQLException e) {
             logger.error(e);
             throw new DAOException(e);
         } catch (ConnectionPoolException e) {
             logger.error(e);
             throw new DAOException(e);
-        } finally {
-            try {
-                preparedStatement.close();
-                resultSet.close();
-                connectionPool.returnConnection(connection);
-            } catch (ConnectionPoolException e) {
-                logger.error(e);
-            } catch (SQLException e) {
-                logger.error(e);
-            }
         }
+
         return applicants;
     }
 
+    /**
+     * Creates user in database
+     *
+     * @param applicant current applicant
+     * @return true, if creation was successful, otherwise - false
+     * @throws DAOException
+     */
     @Override
     public boolean addApplicant(Applicant applicant) throws DAOException {
 
-        ConnectionPoolFactory factory = ConnectionPoolFactory.getInstance();
-        ConnectionPool connectionPool = factory.getPool();
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-        try {
-            connection = connectionPool.getConnection();
-            preparedStatement = connection.prepareStatement(ADMIN);
-            preparedStatement.setString(1, applicant.getLogin());
-            resultSet = preparedStatement.executeQuery();
-            if (resultSet.isBeforeFirst()) {
-                logger.error("Such login is already exist");
-                throw new DAOException("Such login is already exist");
-            } else {
-                preparedStatement = connection.prepareStatement(APPLICANT_REGISTRATION);
-                preparedStatement.setString(1, applicant.getName());
-                preparedStatement.setString(2, applicant.getSurname());
-                preparedStatement.setString(3, applicant.getPassword());
-                preparedStatement.setString(4, applicant.getLogin());
-                preparedStatement.setString(5, applicant.getEmail());
-                preparedStatement.executeUpdate();
-                return true;
+        ConnectionPool connectionPool = ConnectionPoolImpl.getInstance();
+
+        try (Connection connection = connectionPool.getConnection()) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(ADMIN)) {
+                preparedStatement.setString(1, applicant.getLogin());
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.isBeforeFirst()) {
+                        logger.error("Such login is already exist");
+                        throw new DAOException("Such login is already exist");
+                    } else {
+                        applicantRegistration(applicant, connection);
+                        return true;
+                    }
+                }
             }
         } catch (SQLException e) {
             logger.error(e);
@@ -127,67 +90,58 @@ public class ApplicantDAOImpl implements ApplicantDAO {
         } catch (ConnectionPoolException e) {
             logger.error(e);
             throw new DAOException(e);
-        } finally {
-            try {
-                preparedStatement.close();
-                resultSet.close();
-                connectionPool.returnConnection(connection);
-            } catch (ConnectionPoolException ex) {
-                logger.error(ex);
-            } catch (SQLException ex) {
-                logger.error(ex);
-            }
         }
     }
 
+    /**
+     * Deletes user from database
+     *
+     * @param login unique name of each user
+     * @throws DAOException
+     */
     @Override
     public void deleteApplicant(String login) throws DAOException {
 
-        ConnectionPoolFactory factory = ConnectionPoolFactory.getInstance();
-        ConnectionPool connectionPool = factory.getPool();
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        try {
-            connection = connectionPool.getConnection();
-            preparedStatement = connection.prepareStatement(DELETE_APPLICANT);
-            preparedStatement.setString(1, login);
-            preparedStatement.executeUpdate();
+        ConnectionPool connectionPool = ConnectionPoolImpl.getInstance();
+        try (Connection connection = connectionPool.getConnection()) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(DELETE_APPLICANT)) {
+                preparedStatement.setString(1, login);
+                preparedStatement.executeUpdate();
+            }
         } catch (SQLException e) {
             logger.error(e);
             throw new DAOException(e);
         } catch (ConnectionPoolException e) {
             logger.error(e);
             throw new DAOException(e);
-        } finally {
-            try {
-                preparedStatement.close();
-                connectionPool.returnConnection(connection);
-            } catch (ConnectionPoolException e) {
-                logger.error(e);
-            } catch (SQLException e) {
-                logger.error(e);
-            }
         }
     }
 
+    /**
+     * Search user in database
+     *
+     * @param name    name of applicant
+     * @param surname surname of applicant
+     * @return list of instances of {@link Applicant}
+     * @throws DAOException
+     */
     @Override
-    public Applicant searchApplicant(String name, String surname) throws DAOException {
+    public List<Applicant> searchApplicant(String name, String surname) throws DAOException {
 
-        Applicant currentApplicant;
-        ConnectionPoolFactory factory = ConnectionPoolFactory.getInstance();
-        ConnectionPool connectionPool = factory.getPool();
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-        try {
-            currentApplicant = new Applicant();
-            connection = connectionPool.getConnection();
-            preparedStatement = connection.prepareStatement(SEARCH_APPLICANT);
-            preparedStatement.setString(1, name);
-            preparedStatement.setString(2, surname);
-            resultSet = preparedStatement.executeQuery();
-            if (resultSet.isBeforeFirst()) {
-                return buildApplicant(resultSet);
+        List<Applicant> applicants = null;
+        ConnectionPool connectionPool = ConnectionPoolImpl.getInstance();
+
+        try (Connection connection = connectionPool.getConnection()) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(SEARCH_APPLICANT)) {
+                preparedStatement.setString(1, name);
+                preparedStatement.setString(2, surname);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.isBeforeFirst()) {
+                        applicants = applicantData(resultSet);
+                    }
+                }
             }
         } catch (SQLException e) {
             logger.error(e);
@@ -195,37 +149,35 @@ public class ApplicantDAOImpl implements ApplicantDAO {
         } catch (ConnectionPoolException e) {
             logger.error(e);
             throw new DAOException(e);
-        } finally {
-            try {
-                preparedStatement.close();
-                resultSet.close();
-                connectionPool.returnConnection(connection);
-            } catch (ConnectionPoolException e) {
-                logger.error(e);
-            } catch (SQLException e) {
-                logger.error(e);
-            }
         }
-        return currentApplicant;
+
+        return applicants;
     }
 
+    /**
+     * Method tries to get user info by login and password
+     *
+     * @param login    applicant login
+     * @param password applicant password
+     * @return instance of {@link Applicant}
+     * @throws DAOException
+     */
     @Override
     public Applicant signIn(String login, String password) throws DAOException {
 
-        ConnectionPoolFactory factory = ConnectionPoolFactory.getInstance();
-        ConnectionPool connectionPool = factory.getPool();
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
         Applicant applicant = null;
-        try {
-            connection = connectionPool.getConnection();
-            preparedStatement = connection.prepareStatement(APPLICANT);
-            preparedStatement.setString(1, login);
-            preparedStatement.setString(2, password);
-            resultSet = preparedStatement.executeQuery();
-            if (resultSet.isBeforeFirst()) {
-                applicant = buildApplicant(resultSet);
+        ConnectionPool connectionPool = ConnectionPoolImpl.getInstance();
+
+        try (Connection connection = connectionPool.getConnection()) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(APPLICANT)) {
+                preparedStatement.setString(1, login);
+                preparedStatement.setString(2, password);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.isBeforeFirst()) {
+                        applicant = buildApplicant(resultSet);
+                    }
+                }
             }
         } catch (SQLException e) {
             logger.error(e);
@@ -233,59 +185,106 @@ public class ApplicantDAOImpl implements ApplicantDAO {
         } catch (ConnectionPoolException e) {
             logger.error(e);
             throw new DAOException(e);
-        } finally {
-            try {
-                preparedStatement.close();
-                resultSet.close();
-                connectionPool.returnConnection(connection);
-            } catch (ConnectionPoolException e) {
-                logger.error(e);
-            } catch (SQLException e) {
-                logger.error(e);
-            }
-            return applicant;
         }
+
+        return applicant;
     }
 
+    /**
+     * Updates user info in database
+     *
+     * @param applicant current applicant
+     * @throws DAOException
+     */
     @Override
     public void updateInfo(Applicant applicant) throws DAOException {
 
-        ConnectionPoolFactory factory = ConnectionPoolFactory.getInstance();
-        ConnectionPool connectionPool = factory.getPool();
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        try {
-            connection = connectionPool.getConnection();
-            preparedStatement = connection.prepareStatement(UPDATE_APPLICANT);
+        ConnectionPool connectionPool = ConnectionPoolImpl.getInstance();
 
-            preparedStatement.setString(1, applicant.getName());
-            preparedStatement.setString(2, applicant.getSurname());
-            preparedStatement.setString(3, applicant.getCountry());
-            preparedStatement.setString(4, applicant.getCity());
-            preparedStatement.setString(5, applicant.getEmail());
-            preparedStatement.setString(6, applicant.getPhoneNumber());
-            preparedStatement.setString(7, applicant.getEducation());
-            preparedStatement.setString(8, applicant.getProfessionalSkills());
-            preparedStatement.setInt(9, applicant.getId());
-            preparedStatement.executeUpdate();
+        try (Connection connection = connectionPool.getConnection()) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(UPDATE_APPLICANT_INFO)) {
+                preparedStatement.setString(1, applicant.getName());
+                preparedStatement.setString(2, applicant.getSurname());
+                preparedStatement.setString(3, applicant.getCountry());
+                preparedStatement.setString(4, applicant.getCity());
+                preparedStatement.setString(5, applicant.getEmail());
+                preparedStatement.setString(6, applicant.getPhoneNumber());
+                preparedStatement.setString(7, applicant.getEducation());
+                preparedStatement.setString(8, applicant.getProfessionalSkills());
+                preparedStatement.setInt(9, applicant.getId());
+                preparedStatement.executeUpdate();
+            }
         } catch (SQLException e) {
             logger.error(e);
             throw new DAOException(e);
         } catch (ConnectionPoolException e) {
             logger.error(e);
             throw new DAOException(e);
-        } finally {
-            try {
-                preparedStatement.close();
-                connectionPool.returnConnection(connection);
-            } catch (ConnectionPoolException e) {
-                logger.error(e);
-            } catch (SQLException e) {
-                logger.error(e);
-            }
         }
     }
 
+    /**
+     * Gets user info from database
+     *
+     * @param login
+     * @return instance of {@link Applicant}
+     * @throws DAOException
+     */
+    @Override
+    public Applicant getActualInformation(String login) throws DAOException {
+
+        Applicant applicant = null;
+        ConnectionPool connectionPool = ConnectionPoolImpl.getInstance();
+
+        try (Connection connection = connectionPool.getConnection()) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(ACTUAL_APPLICANT_INFO)) {
+                preparedStatement.setString(1, login);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.isBeforeFirst()) {
+                        applicant = buildApplicant(resultSet);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            logger.error(e);
+            throw new DAOException(e);
+        } catch (ConnectionPoolException e) {
+            logger.error(e);
+            throw new DAOException(e);
+        }
+
+        return applicant;
+    }
+
+    /**
+     * Method tries to add user info in db
+     *
+     * @param applicant  current applicant
+     * @param connection current connection
+     * @throws SQLException
+     */
+    private void applicantRegistration(Applicant applicant, Connection connection) throws SQLException {
+        try (PreparedStatement prepareStatement = connection
+                .prepareStatement(APPLICANT_REGISTRATION)) {
+            prepareStatement.setString(1, applicant.getName());
+            prepareStatement.setString(2, applicant.getSurname());
+            prepareStatement.setString(3, applicant.getPassword());
+            prepareStatement.setString(4, applicant.getLogin());
+            prepareStatement.setString(5, applicant.getEmail());
+            prepareStatement.setString(6, applicant.getPhoneNumber());
+            prepareStatement.executeUpdate();
+        }
+    }
+
+    /**
+     * Method tries to get user info from db
+     *
+     * @param resultSet
+     * @return list of instances of {@link Applicant}
+     * @throws SQLException
+     */
     private List<Applicant> applicantData(ResultSet resultSet) throws SQLException {
 
         List<Applicant> applicants = new ArrayList<>();
@@ -299,18 +298,30 @@ public class ApplicantDAOImpl implements ApplicantDAO {
             applicant.setPhoneNumber(resultSet.getString(PHONE_NUMBER));
             applicant.setCountry(resultSet.getString(COUNTRY));
             applicant.setCity(resultSet.getString(CITY));
+            applicant.setEmail(resultSet.getString(EMAIL));
 
             applicant = getApplicantsVacancies(applicant);
             applicant = getInterviewResult(applicant);
+            applicant = getApplicantSkills(applicant);
             applicants.add(applicant);
         }
+
         return applicants;
     }
 
+    /**
+     * Method tries to get user info from db
+     *
+     * @param resultSet
+     * @return instance of {@link Applicant}
+     * @throws SQLException
+     */
     private Applicant buildApplicant(ResultSet resultSet) throws SQLException {
-        Applicant applicant = new Applicant();
+
+        Applicant applicant = null;
 
         while (resultSet.next()) {
+            applicant = new Applicant();
             applicant.setId(resultSet.getInt(APPLICANT_ID));
             applicant.setLogin(resultSet.getString(LOGIN));
             applicant.setPassword(resultSet.getString(PASSWORD));
@@ -325,94 +336,119 @@ public class ApplicantDAOImpl implements ApplicantDAO {
 
             applicant = getApplicantsVacancies(applicant);
             applicant = getInterviewResult(applicant);
+            applicant = getApplicantSkills(applicant);
         }
+
         return applicant;
     }
 
+    /**
+     * Method tries to get user's job vacancy info from db
+     *
+     * @param applicant current applicant
+     * @return instance of {@link Applicant}
+     */
     private Applicant getApplicantsVacancies(Applicant applicant) {
 
-        ConnectionPoolFactory factory = ConnectionPoolFactory.getInstance();
-        ConnectionPool connectionPool = factory.getPool();
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-        try {
-            connection = connectionPool.getConnection();
-            preparedStatement = connection.prepareStatement(APPLICANT_JOBVACANCY);
-            preparedStatement.setInt(1, applicant.getId());
-            resultSet = preparedStatement.executeQuery();
-
-            if (resultSet.isBeforeFirst()) {
-
-                JobVacancy jobVacancy = new JobVacancy();
-                while (resultSet.next()) {
-                    jobVacancy.setJobTitle(resultSet.getString(JOB_TITLE));
+        ConnectionPool connectionPool = ConnectionPoolImpl.getInstance();
+        try (Connection connection = connectionPool.getConnection()) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(APPLICANT_JOBVACANCY)) {
+                preparedStatement.setInt(1, applicant.getId());
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.isBeforeFirst()) {
+                        JobVacancy jobVacancy = new JobVacancy();
+                        while (resultSet.next()) {
+                            jobVacancy.setId(resultSet.getInt(JOB_VAC_ID));
+                            jobVacancy.setJobTitle(resultSet.getString(JOB_TITLE));
+                        }
+                        applicant.setJobVacancy(jobVacancy);
+                    }
                 }
-                applicant.setJobVacancy(jobVacancy);
-                return applicant;
             }
         } catch (SQLException e) {
             logger.error(e);
         } catch (ConnectionPoolException e) {
             logger.error(e);
-        } finally {
-            try {
-                preparedStatement.close();
-                resultSet.close();
-                connectionPool.returnConnection(connection);
-            } catch (ConnectionPoolException e) {
-                logger.error(e);
-            } catch (SQLException e) {
-                logger.error(e);
-            }
         }
+
         return applicant;
     }
 
+    /**
+     * Method tries to get user's interview info from db
+     *
+     * @param applicant current applicant
+     * @return instance of {@link Applicant}
+     */
     private Applicant getInterviewResult(Applicant applicant) {
 
-        ConnectionPoolFactory factory = ConnectionPoolFactory.getInstance();
-        ConnectionPool connectionPool = factory.getPool();
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-        try {
-            connection = connectionPool.getConnection();
-            preparedStatement = connection.prepareStatement(APPLICANT_INTERVIEW);
-            preparedStatement.setInt(1, applicant.getId());
-            resultSet = preparedStatement.executeQuery();
-
-            if (resultSet.isBeforeFirst()) {
-                Interview interview = new Interview();
-                while (resultSet.next()) {
-
-                    interview.setId(resultSet.getInt(INTERVIEW_ID));
-                    interview.setPreliminaryInterview(InterviewResult.valueOf(resultSet.getString(PRELIMINARY_INTERVIEW).toUpperCase()));
-                    interview.setTechnicalInterview((InterviewResult.valueOf(resultSet.getString(TECHNICAL_INTERVIEW).toUpperCase())));
-                    interview.setCommonResult(InterviewResult.valueOf(resultSet.getString(COMMON_INTERVIEW_RESULT).toUpperCase()));
-                    interview.setDatePreInt(resultSet.getString(DATE_PRE_INT));
-                    interview.setDateTecInt(resultSet.getString(DATE_TEC_INT));
-                    interview.setTimePreInt(resultSet.getString(TIME_PRE_INT));
-                    interview.setTimeTecInt(resultSet.getString(TIME_TEC_INT));
+        ConnectionPool connectionPool = ConnectionPoolImpl.getInstance();
+        try (Connection connection = connectionPool.getConnection()) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(APPLICANT_INTERVIEW)) {
+                preparedStatement.setInt(1, applicant.getId());
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.isBeforeFirst()) {
+                        Interview interview = new Interview();
+                        while (resultSet.next()) {
+                            interview.setId(resultSet.getInt(INTERVIEW_ID));
+                            interview.setPreliminaryInterview(InterviewResult.valueOf(resultSet.getString(PRELIMINARY_INTERVIEW).toUpperCase()));
+                            interview.setTechnicalInterview((InterviewResult.valueOf(resultSet.getString(TECHNICAL_INTERVIEW).toUpperCase())));
+                            interview.setCommonResult(InterviewResult.valueOf(resultSet.getString(COMMON_INTERVIEW_RESULT).toUpperCase()));
+                            interview.setDatePreInt(resultSet.getString(DATE_PRE_INT));
+                            interview.setDateTecInt(resultSet.getString(DATE_TEC_INT));
+                            interview.setTimePreInt(resultSet.getString(TIME_PRE_INT));
+                            interview.setTimeTecInt(resultSet.getString(TIME_TEC_INT));
+                        }
+                        applicant.setInterview(interview);
+                    }
                 }
-                applicant.setInterview(interview);
-                return applicant;
             }
         } catch (SQLException e) {
             logger.error(e);
         } catch (ConnectionPoolException e) {
             logger.error(e);
-        } finally {
-            try {
-                preparedStatement.close();
-                resultSet.close();
-                connectionPool.returnConnection(connection);
-            } catch (ConnectionPoolException e) {
-                logger.error(e);
-            } catch (SQLException e) {
-                logger.error(e);
-            }
         }
+
+        return applicant;
+    }
+
+    /**
+     * Method tries to get user's skills info from db
+     *
+     * @param applicant current applicant
+     * @return instance of {@link Applicant}
+     */
+    private Applicant getApplicantSkills(Applicant applicant) {
+
+        List<Skill> skills = new ArrayList<>();
+        ConnectionPool connectionPool = ConnectionPoolImpl.getInstance();
+
+        try (Connection connection = connectionPool.getConnection()) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(APPLICANT_SKILLS)) {
+                preparedStatement.setInt(1, applicant.getId());
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.isBeforeFirst()) {
+                        Skill skill = new Skill();
+                        while (resultSet.next()) {
+                            skill = new Skill();
+                            skill.setTitle(resultSet.getString(SKILL_TITLE));
+                            skill.setId(resultSet.getInt(ID_PROF_SKILLS));
+
+                            skills.add(skill);
+                        }
+                        applicant.setSkills(skills);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            logger.error(e);
+        } catch (ConnectionPoolException e) {
+            logger.error(e);
+        }
+
         return applicant;
     }
 }

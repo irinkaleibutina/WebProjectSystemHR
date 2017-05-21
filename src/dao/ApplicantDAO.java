@@ -1,22 +1,21 @@
 package dao;
 
 import bean.Applicant;
-import bean.Interview;
-import bean.JobVacancy;
 import dao.exception.DAOException;
-
 import java.util.List;
 
 /**
- * Created by irinaleibutina on 29.03.17.
+ * Interface {@code ApplicantDAO} is the class, that contains methods
+ * to work with applicant info in the data base.
+ * @author irinaleibutina
  */
 public interface ApplicantDAO {
+
     List<Applicant> getApplicants() throws DAOException;
     boolean addApplicant(Applicant applicant) throws DAOException;
     void deleteApplicant(String login) throws DAOException;
-    Applicant searchApplicant(String name, String surname) throws DAOException;
+    List<Applicant> searchApplicant(String name, String surname) throws DAOException;
     Applicant signIn(String login, String password) throws DAOException;
     void updateInfo(Applicant applicant) throws DAOException;
-
-    // void updateInformation(Applicant applicant) throws DAOException;
+    Applicant getActualInformation(String login) throws DAOException;
 }

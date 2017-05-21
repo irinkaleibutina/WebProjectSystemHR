@@ -4,12 +4,12 @@ import bean.Interview;
 import dao.exception.DAOException;
 
 /**
- * Created by irinaleibutina on 4/11/17.
+ * Interface {@code InterviewDAO} is the class, that contains methods
+ * to work with interview info in the data base.
+ * @author irinaleibutina
  */
 public interface InterviewDAO {
+
     void updatePreliminaryInterview(int applicantId, Interview interview) throws DAOException;
     void updateTechnicalInterview(int applicantId, Interview interview) throws DAOException;
-    Interview getResult(int applicantId) throws DAOException;
-
-    // TODO maybe add func for common result
 }

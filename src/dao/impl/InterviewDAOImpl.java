@@ -2,10 +2,10 @@ package dao.impl;
 
 import bean.Interview;
 import dao.InterviewDAO;
-import dao.connectionpool.ConnectionPool;
-import dao.connectionpool.ConnectionPoolException;
-import dao.connectionpool.ConnectionPoolFactory;
 import dao.exception.DAOException;
+import dao.pool.ConnectionPool;
+import dao.pool.exception.ConnectionPoolException;
+import dao.pool.impl.ConnectionPoolImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -14,98 +14,72 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import static dao.util.sql.InterviewSQL.*;
+
 /**
- * Created by irinaleibutina on 4/11/17.
+ * Class that provides methods for mysql db.
+ * Implements {@link src.dao.InterviewDAO}
  */
 public class InterviewDAOImpl implements InterviewDAO {
+
     private static final Logger logger = LogManager.getLogger(InterviewDAOImpl.class.getName());
 
-    private static final String UPDATE_PRELIMINARY_INTERVIEW = "update mydb.interview set preliminary_interview =?," +
-            "date_pre_int = ?, time_pre_int = ? WHERE interview_id = ?";
-    private static final String INTERVIEW = "SELECT *FROM mydb.interview WHERE interview_id = ?";
-    private static final String CREATE_PRELIMINARY_INTERVIEW = "INSERT INTO mydb.interview(interview_id, preliminary_interview, date_pre_int, time_pre_int)" +
-            " VALUES (?,?,?,?)";
-    private static final String UPDATE_TECHNICAL_INTERVIEW = "UPDATE mydb.interview set technical_interview=?, date_tec_int=?, time_tec_int=?" +
-            "WHERE interview_id = ?";
-    private static final String CREATE_TECHNICAL_INTERVIEW = "INSERT INTO mydb.interview(interview_id, technical_interview, date_tec_int, time_tec_int)" +
-            " VALUES (?,?,?,?)";
-
+    /**
+     * Method tries to update preliminary interview info in db
+     *
+     * @param id        applicant id
+     * @param interview current interview
+     * @throws DAOException
+     */
     @Override
     public void updatePreliminaryInterview(int id, Interview interview) throws DAOException {
 
-        ConnectionPoolFactory factory = ConnectionPoolFactory.getInstance();
-        ConnectionPool connectionPool = factory.getPool();
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-        try {
-            connection = connectionPool.getConnection();
-            preparedStatement = connection.prepareStatement(INTERVIEW);
+        ConnectionPool connectionPool = ConnectionPoolImpl.getInstance();
 
-            preparedStatement.setInt(1, id);
-            resultSet = preparedStatement.executeQuery();
-            if (resultSet.isBeforeFirst()) {
-                preparedStatement = connection.prepareStatement(UPDATE_PRELIMINARY_INTERVIEW);
-                preparedStatement.setString(1, interview.getPreliminaryInterview().toString());
-                preparedStatement.setString(2, interview.getDatePreInt());
-                preparedStatement.setString(3, interview.getTimePreInt());
-                preparedStatement.setInt(4, id);
-                preparedStatement.executeUpdate();
-            } else {
-                preparedStatement = connection.prepareStatement(CREATE_PRELIMINARY_INTERVIEW);
-                preparedStatement.setInt(1, id);
-                preparedStatement.setString(2, interview.getPreliminaryInterview().toString());
-                preparedStatement.setString(3, interview.getDatePreInt());
-                preparedStatement.setString(4, interview.getTimePreInt());
-                preparedStatement.executeUpdate();
+        try (Connection connection = connectionPool.getConnection()) {
+            try (PreparedStatement prepStatement = connection
+                    .prepareStatement(INTERVIEW)) {
+                prepStatement.setInt(1, id);
+                try (ResultSet resultSet = prepStatement.executeQuery()) {
+                    if (resultSet.isBeforeFirst()) {
+                        setPreliminaryInterview(id, interview, connection);
+                    } else {
+                        createPreliminaryInterview(id, interview, connection);
+                    }
+                }
             }
-
         } catch (SQLException e) {
             logger.error(e);
             throw new DAOException(e);
         } catch (ConnectionPoolException e) {
             logger.error(e);
             throw new DAOException(e);
-        } finally {
-            try {
-                preparedStatement.close();
-                resultSet.close();
-                connectionPool.returnConnection(connection);
-            } catch (ConnectionPoolException e) {
-                logger.error(e);
-            } catch (SQLException e) {
-                logger.error(e);
-            }
         }
     }
 
+    /**
+     * Method tries to update technical interview info in db
+     *
+     * @param id        applicant id
+     * @param interview current interview
+     * @throws DAOException
+     */
     @Override
     public void updateTechnicalInterview(int id, Interview interview) throws DAOException {
 
-        ConnectionPoolFactory factory = ConnectionPoolFactory.getInstance();
-        ConnectionPool connectionPool = factory.getPool();
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-        try {
-            connection = connectionPool.getConnection();
-            preparedStatement = connection.prepareStatement(INTERVIEW);
-            preparedStatement.setInt(1, id);
-            resultSet = preparedStatement.executeQuery();
-            if (resultSet.isBeforeFirst()) {
-                preparedStatement = connection.prepareStatement(UPDATE_TECHNICAL_INTERVIEW);
-                preparedStatement.setString(1, interview.getTechnicalInterview().toString());
-                preparedStatement.setString(2, interview.getDateTecInt());
-                preparedStatement.setString(3, interview.getTimeTecInt());
-                preparedStatement.setInt(4, id);
-                preparedStatement.executeUpdate();
-            } else {
-                preparedStatement = connection.prepareStatement(CREATE_TECHNICAL_INTERVIEW);
-                preparedStatement.setInt(1, id);
-                preparedStatement.setString(2, interview.getTechnicalInterview().toString());
-                preparedStatement.setString(3, interview.getDateTecInt());
-                preparedStatement.setString(4, interview.getTimeTecInt());
-                preparedStatement.executeUpdate();
+        ConnectionPool connectionPool = ConnectionPoolImpl.getInstance();
+
+        try (Connection connection = connectionPool.getConnection()) {
+            try (PreparedStatement prepStatement = connection
+                    .prepareStatement(INTERVIEW)) {
+                prepStatement.setInt(1, id);
+                try (ResultSet resultSet = prepStatement.executeQuery()) {
+                    if (resultSet.isBeforeFirst()) {
+                        setTechnicalInterview(id, interview, connection);
+                    } else {
+                        createTechnicalInterview(id, interview, connection);
+                    }
+                }
             }
         } catch (SQLException e) {
             logger.error(e);
@@ -113,23 +87,82 @@ public class InterviewDAOImpl implements InterviewDAO {
         } catch (ConnectionPoolException e) {
             logger.error(e);
             throw new DAOException(e);
-        } finally {
-            try {
-                preparedStatement.close();
-                resultSet.close();
-                connectionPool.returnConnection(connection);
-            } catch (ConnectionPoolException e) {
-                logger.error(e);
-            } catch (SQLException e) {
-                logger.error(e);
-            }
         }
     }
 
-    @Override
-    public Interview getResult(int applicantId) throws DAOException {
+    /**
+     * Method tries to update preliminary interview info in db
+     *
+     * @param id        applicant id
+     * @param interview current interview
+     * @throws SQLException
+     */
+    private void setPreliminaryInterview(int id, Interview interview, Connection connection) throws SQLException {
 
-        // Here get common result
-        return null;
+        try (PreparedStatement prepareStatement = connection
+                .prepareStatement(UPDATE_PRELIMINARY_INTERVIEW)) {
+            prepareStatement.setString(1, interview.getPreliminaryInterview().toString());
+            prepareStatement.setString(2, interview.getDatePreInt());
+            prepareStatement.setString(3, interview.getTimePreInt());
+            prepareStatement.setInt(4, id);
+            prepareStatement.executeUpdate();
+        }
+    }
+
+    /**
+     * Method tries to create preliminary interview
+     *
+     * @param id        applicant id
+     * @param interview current interview
+     * @throws SQLException
+     */
+    private void createPreliminaryInterview(int id, Interview interview, Connection connection) throws SQLException {
+
+        try (PreparedStatement prepareStatement = connection
+                .prepareStatement(CREATE_PRELIMINARY_INTERVIEW)) {
+            prepareStatement.setInt(1, id);
+            prepareStatement.setString(2, interview.getPreliminaryInterview().toString());
+            prepareStatement.setString(3, interview.getDatePreInt());
+            prepareStatement.setString(4, interview.getTimePreInt());
+            prepareStatement.executeUpdate();
+        }
+    }
+
+    /**
+     * Method tries to create technical interview
+     *
+     * @param id        applicant id
+     * @param interview current interview
+     * @throws SQLException
+     */
+    private void createTechnicalInterview(int id, Interview interview, Connection connection) throws SQLException {
+        try (PreparedStatement prepareStatement = connection
+                .prepareStatement(CREATE_TECHNICAL_INTERVIEW)) {
+            prepareStatement.setInt(1, id);
+            prepareStatement.setString(2, interview.getTechnicalInterview().toString());
+            prepareStatement.setString(3, interview.getDateTecInt());
+            prepareStatement.setString(4, interview.getTimeTecInt());
+            prepareStatement.executeUpdate();
+        }
+    }
+
+    /**
+     * Method tries to update technical interview info in db
+     *
+     * @param id        applicant id
+     * @param interview current interview
+     * @throws SQLException
+     */
+    private void setTechnicalInterview(int id, Interview interview, Connection connection) throws SQLException {
+
+        try (PreparedStatement prepareStatement = connection
+                .prepareStatement(UPDATE_TECHNICAL_INTERVIEW)) {
+            prepareStatement.setInt(1, id);
+            prepareStatement.setString(1, interview.getTechnicalInterview().toString());
+            prepareStatement.setString(2, interview.getDateTecInt());
+            prepareStatement.setString(3, interview.getTimeTecInt());
+            prepareStatement.setInt(4, id);
+            prepareStatement.executeUpdate();
+        }
     }
 }

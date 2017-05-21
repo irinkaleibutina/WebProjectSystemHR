@@ -1,24 +1,61 @@
 package dao.factory;
 
-import dao.UserDAO;
-import dao.impl.SQLUserDAO;
+import dao.*;
+import dao.impl.*;
 
 /**
- * Created by irinaleibutina on 20.02.17.
+ * Factory pattern implementation for dao layer
  */
 public final class DAOFactory {
 
     private static final DAOFactory instance = new DAOFactory();
 
-    private DAOFactory(){}
-
-    private UserDAO userDAO = new SQLUserDAO();
-
-    public UserDAO getUserDAO(){
-        return userDAO;
+    private DAOFactory() {
     }
 
-    public static DAOFactory getInstance(){
+    private JobVacancyDAO jobVacancyDAO = new JobVacancyDAOImpl();
+
+    private ApplicantDAO applicant = new ApplicantDAOImpl();
+
+    private EmployeeDAO employeeDAO = new EmployeeDAOImpl();
+
+    private ApplicantJobVacancyDAO applicantJobVacancyDAO = new ApplicantJobVacancyDAOImpl();
+
+    private InterviewDAO interviewDAO = new InterviewDAOImpl();
+
+    private NewsDAO newsDAO = new NewsDAOImpl();
+
+    private ApplicantSkillsDAO applicantSkillsDAO = new ApplicantSkillsDAOImpl();
+
+    public JobVacancyDAO getJobVacancyDAO() {
+        return jobVacancyDAO;
+    }
+
+    public ApplicantDAO getApplicant() {
+        return applicant;
+    }
+
+    public EmployeeDAO getEmployeeDAO() {
+        return employeeDAO;
+    }
+
+    public ApplicantJobVacancyDAO getApplicantJobVacancyDAO() {
+        return applicantJobVacancyDAO;
+    }
+
+    public InterviewDAO getInterviewDAO() {
+        return interviewDAO;
+    }
+
+    public NewsDAO getNewsDAO() {
+        return newsDAO;
+    }
+
+    public ApplicantSkillsDAO getApplicantSkillsDAO() {
+        return applicantSkillsDAO;
+    }
+
+    public static DAOFactory getInstance() {
         return instance;
     }
 }

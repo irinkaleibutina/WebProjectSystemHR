@@ -1,10 +1,10 @@
 package dao.impl;
 
 import dao.ApplicantJobVacancyDAO;
-import dao.connectionpool.ConnectionPool;
-import dao.connectionpool.ConnectionPoolException;
-import dao.connectionpool.ConnectionPoolFactory;
 import dao.exception.DAOException;
+import dao.pool.ConnectionPool;
+import dao.pool.exception.ConnectionPoolException;
+import dao.pool.impl.ConnectionPoolImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -13,95 +13,142 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import static dao.util.sql.ApplicantJobVacancySQL.*;
+
 /**
- * Created by irinaleibutina on 09.04.17.
+ * Class that provides methods for mysql db.
+ * Implements {@link src.dao.ApplicantJobVacancyDAO}
  */
 public class ApplicantJobVacancyDAOImpl implements ApplicantJobVacancyDAO {
 
     private static final Logger logger = LogManager.getLogger(ApplicantJobVacancyDAOImpl.class.getName());
 
-    private static final String SUBMIT_APPLICATION = "INSERT INTO mydb.applicant_job_vacancy(applicant_appl_id, job_vacancy_job_vac_id) " +
-            "VALUES (?,?)";
-    private static final String DELETE_APPLICATION = "UPDATE mydb.applicant_job_vacancy SET current_status = 'N'" +
-            " WHERE applicant_appl_id = ? AND job_vacancy_job_vac_id = ?";
-    private final static String SEARCH_APPLICATION = "SELECT * FROM mydb.applicant_job_vacancy " +
-            "WHERE applicant_appl_id = ? AND job_vacancy_job_vac_id = ? AND current_status = 'N'";
-    private static final String UPDATE_APPLICATION= "UPDATE mydb.applicant_job_vacancy SET current_status = 'A'" +
-            " WHERE applicant_appl_id = ? AND job_vacancy_job_vac_id = ?";
-
+    /**
+     * Method tries to add job vacancy info to a particular user
+     *
+     * @param applicantId
+     * @param jobVacancyId
+     * @throws DAOException
+     */
     @Override
     public void submitApplication(int applicantId, int jobVacancyId) throws DAOException {
 
-        ConnectionPoolFactory factory = ConnectionPoolFactory.getInstance();
-        ConnectionPool connectionPool = factory.getPool();
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-        try {
-            connection = connectionPool.getConnection();
-            preparedStatement = connection.prepareStatement(SEARCH_APPLICATION);
-            preparedStatement.setInt(1, applicantId);
-            preparedStatement.setInt(2, jobVacancyId);
-            resultSet = preparedStatement.executeQuery();
+        ConnectionPool connectionPool = ConnectionPoolImpl.getInstance();
 
-            if (resultSet.isBeforeFirst()) {
-                preparedStatement = connection.prepareStatement(UPDATE_APPLICATION);
-            } else {
-                preparedStatement = connection.prepareStatement(SUBMIT_APPLICATION);
+        try (Connection connection = connectionPool.getConnection()) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(SEARCH_APPLICATION)) {
+                preparedStatement.setInt(1, applicantId);
+                preparedStatement.setInt(2, jobVacancyId);
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    if (resultSet.isBeforeFirst()) {
+                        updateApplication(applicantId, jobVacancyId, connection);
+                    } else {
+                        if (checkApplication(applicantId, connection)) {
+                            throw new DAOException("Applicant already has actual application");
+                        } else {
+                            submitApplication(applicantId, jobVacancyId, connection);
+                        }
+                    }
+                }
             }
-            preparedStatement.setInt(1, applicantId);
-            preparedStatement.setInt(2, jobVacancyId);
-            preparedStatement.executeUpdate();
-
         } catch (SQLException e) {
             logger.error(e);
             throw new DAOException(e);
         } catch (ConnectionPoolException e) {
             logger.error(e);
             throw new DAOException(e);
-        } finally {
-            try {
-                preparedStatement.close();
-                resultSet.close();
-                connectionPool.returnConnection(connection);
-            } catch (ConnectionPoolException e) {
-                logger.error(e);
-            } catch (SQLException e) {
-                logger.error(e);
-            }
         }
     }
 
+    /**
+     * Method tries to delete job vacancy info to a particular user
+     *
+     * @param applicantId
+     * @param jobVacancyId
+     * @throws DAOException
+     */
     @Override
     public void deleteApplication(int applicantId, int jobVacancyId) throws DAOException {
 
-        ConnectionPoolFactory factory = ConnectionPoolFactory.getInstance();
-        ConnectionPool connectionPool = factory.getPool();
-        Connection connection = null;
-        PreparedStatement preparedStatement = null;
-        try {
-            connection = connectionPool.getConnection();
-            preparedStatement = connection.prepareStatement(DELETE_APPLICATION);
-            preparedStatement.setInt(1, applicantId);
-            preparedStatement.setInt(2, jobVacancyId);
-            preparedStatement.executeUpdate();
+        ConnectionPool connectionPool = ConnectionPoolImpl.getInstance();
+
+        try (Connection connection = connectionPool.getConnection()) {
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(DELETE_APPLICATION)) {
+                preparedStatement.setInt(1, applicantId);
+                preparedStatement.setInt(2, jobVacancyId);
+                preparedStatement.executeUpdate();
+            }
+            try (PreparedStatement preparedStatement = connection
+                    .prepareStatement(DELETE_INTERVIEW)) {
+                preparedStatement.setInt(1, applicantId);
+                preparedStatement.executeUpdate();
+            }
         } catch (SQLException e) {
             logger.error(e);
             throw new DAOException(e);
         } catch (ConnectionPoolException e) {
             logger.error(e);
             throw new DAOException(e);
-        } finally {
-            try {
-                preparedStatement.close();
-                connectionPool.returnConnection(connection);
-            } catch (ConnectionPoolException e) {
-                logger.error(e);
-            } catch (SQLException e) {
-                logger.error(e);
-            }
         }
     }
 
-    // TODO function for get all user for one vacancy
+    /**
+     * Method tries to update job vacancy info to a particular user
+     *
+     * @param applicantId
+     * @param jobVacancyId
+     * @throws SQLException
+     */
+    private void updateApplication(int applicantId, int jobVacancyId, Connection connection) throws SQLException {
+
+        try (PreparedStatement prepareStatement = connection
+                .prepareStatement(UPDATE_APPLICATION)) {
+            prepareStatement.setInt(1, applicantId);
+            prepareStatement.setInt(2, jobVacancyId);
+            prepareStatement.executeUpdate();
+        }
+    }
+
+    /**
+     * Method that checks user job vacancies in database
+     *
+     * @param applicantId
+     * @param connection
+     * @return true, if user has application, otherwise - false;
+     * @throws SQLException
+     */
+    private boolean checkApplication(int applicantId, Connection connection) throws SQLException {
+
+        try (PreparedStatement prepareStatement = connection
+                .prepareStatement(CHECK_APPLICATION)) {
+            prepareStatement.setInt(1, applicantId);
+            try (ResultSet resultSet = prepareStatement.executeQuery()) {
+                if (resultSet.isBeforeFirst()) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Method tries to add job vacancy info to a particular user
+     *
+     * @param applicantId
+     * @param jobVacancyId
+     * @throws SQLException
+     */
+    private void submitApplication(int applicantId, int jobVacancyId, Connection connection) throws SQLException {
+
+        try (PreparedStatement prepareStatement = connection
+                .prepareStatement(SUBMIT_APPLICATION)) {
+            prepareStatement.setInt(1, applicantId);
+            prepareStatement.setInt(2, jobVacancyId);
+            prepareStatement.executeUpdate();
+        }
+    }
 }
+
