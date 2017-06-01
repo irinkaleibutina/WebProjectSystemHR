@@ -1,10 +1,11 @@
 package service;
 
-import dao.exception.DAOException;
 import service.exception.ServiceException;
 
 /**
- * Created by irinaleibutina on 09.04.17.
+ * Interface {@code ApplicantJobVacancyService} is the class, that contains methods
+ * to work with job vacancy
+ * @author irinaleibutina
  */
 public interface ApplicantJobVacancyService {
     void submitApplication(String applicantId, String jobVacancyId) throws ServiceException;

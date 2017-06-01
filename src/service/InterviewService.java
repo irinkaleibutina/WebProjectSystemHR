@@ -1,15 +1,15 @@
 package service;
 
 import bean.Interview;
-import dao.exception.DAOException;
 import service.exception.ServiceException;
 
 /**
- * Created by irinaleibutina on 4/11/17.
+ * Interface {@code InterviewService} is the class, that contains methods
+ * to work with interview info
+ * @author irinaleibutina
  */
 public interface InterviewService {
 
-    void updatePreliminaryInterview(int applicantId, Interview interview) throws ServiceException;
-    void updateTechnicalInterview(int applicantId, Interview interview) throws ServiceException;
-    //Interview getResult(int applicantId) throws DAOException;
+    void updatePreliminaryInterview(String applicantId, Interview interview) throws ServiceException;
+    void updateTechnicalInterview(String applicantId, Interview interview) throws ServiceException;
 }

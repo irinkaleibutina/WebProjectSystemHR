@@ -11,12 +11,21 @@ import service.exception.ServiceException;
 
 import java.util.List;
 
+import static service.validation.ServiceValidation.*;
+
+
 /**
- * Created by irinaleibutina on 05.04.17.
+ * Class implements {@link src.dao.ApplicantService}
  */
 public class ApplicantServiceImpl implements ApplicantService {
     private static final Logger logger = LogManager.getLogger(ApplicantServiceImpl.class.getName());
 
+    /**
+     * Method  performs a dao level call to get applicants
+     *
+     * @return list of instances of {@link Applicant}
+     * @throws ServiceException
+     */
     @Override
     public List<Applicant> getApplicants() throws ServiceException {
 
@@ -25,11 +34,18 @@ public class ApplicantServiceImpl implements ApplicantService {
         try {
             return applicantDAO.getApplicants();
         } catch (DAOException e) {
-            logger.error(e);
             throw new ServiceException(e);
         }
     }
 
+    /**
+     * Method checks the input parameters performs a dao level call
+     * to add new applicant
+     *
+     * @param applicant current applicant
+     * @return true, if creation was successful, otherwise - false
+     * @throws ServiceException
+     */
     @Override
     public boolean applicantRegistration(Applicant applicant) throws ServiceException {
 
@@ -43,14 +59,19 @@ public class ApplicantServiceImpl implements ApplicantService {
                 return true;
             }
         } catch (DAOException e) {
-            logger.error(e);
             throw new ServiceException(e);
         }
         return false;
     }
 
+    /**
+     * Method checks the input parameters performs a dao level call
+     * to delete applicant
+     *
+     * @param login unique name of each user
+     * @throws ServiceException
+     */
     @Override
-    // public void deleteApplicant(Applicant applicant) throws ServiceException {
     public void deleteApplicant(String login) throws ServiceException {
 
         if (!validateParam(login)) {
@@ -62,13 +83,21 @@ public class ApplicantServiceImpl implements ApplicantService {
         try {
             applicantDAO.deleteApplicant(login);
         } catch (DAOException e) {
-            logger.error(e);
             throw new ServiceException(e);
         }
     }
 
+    /**
+     * Method checks the input parameters performs a dao level call
+     * to search applicant
+     *
+     * @param name    name of applicant
+     * @param surname surname of applicant
+     * @return list of instances of {@link Applicant}
+     * @throws ServiceException
+     */
     @Override
-    public Applicant searchApplicant(String name, String surname) throws ServiceException {
+    public List<Applicant> searchApplicant(String name, String surname) throws ServiceException {
 
         if (!validateParam(name)) {
             logger.error("invalid name");
@@ -84,11 +113,19 @@ public class ApplicantServiceImpl implements ApplicantService {
         try {
             return applicantDAO.searchApplicant(name, surname);
         } catch (DAOException e) {
-            logger.error(e);
             throw new ServiceException(e);
         }
     }
 
+    /**
+     * Method checks the input parameters performs a dao level call
+     * to get user info by login and password
+     *
+     * @param login    applicant login
+     * @param password applicant password
+     * @return instance of {@link Applicant}
+     * @throws ServiceException
+     */
     @Override
     public Applicant signIn(String login, String password) throws ServiceException {
 
@@ -104,14 +141,19 @@ public class ApplicantServiceImpl implements ApplicantService {
         DAOFactory daoFactory = DAOFactory.getInstance();
         ApplicantDAO applicantDAO = daoFactory.getApplicant();
         try {
-            //applicant = new Applicant();
             return applicantDAO.signIn(login, password);
         } catch (DAOException e) {
-            logger.error(e);
             throw new ServiceException(e);
         }
     }
 
+    /**
+     * Method checks the input parameters performs a dao level call
+     * to update applicant info
+     *
+     * @param applicant current applicant
+     * @throws ServiceException
+     */
     @Override
     public void updateInfo(Applicant applicant) throws ServiceException {
 
@@ -123,178 +165,28 @@ public class ApplicantServiceImpl implements ApplicantService {
         try {
             applicantDAO.updateInfo(applicant);
         } catch (DAOException e) {
-            logger.error(e);
             throw new ServiceException(e);
         }
     }
 
-    // Validation
+    /**
+     * Method checks the input parameters performs a dao level call
+     * to get actual applicant info
+     *
+     * @param login
+     * @return instance of {@link Applicant}
+     * @throws ServiceException
+     */
+    @Override
+    public Applicant getActualInformation(String login) throws ServiceException {
+        DAOFactory daoFactory = DAOFactory.getInstance();
+        ApplicantDAO applicantDAO = daoFactory.getApplicant();
 
-    private boolean validateApplicantRegInfo(Applicant applicant) {
-        String name = applicant.getName();
-        if (!validateParam(name)) {
-            logger.error("invalid name");
-            return false;
+        try {
+            return applicantDAO.getActualInformation(login);
+        } catch (DAOException e) {
+            e.printStackTrace();
         }
-
-        String surname = applicant.getSurname();
-        if (!validateParam(surname)) {
-            logger.error("invalid surname");
-            return false;
-        }
-
-        String email = applicant.getEmail();
-        if (!validateParam(email)) {
-            logger.error("invalid email");
-            return false;
-        }
-
-        String password = applicant.getPassword();
-        if (!validateParam(password)) {
-            logger.error("invalid password");
-            return false;
-        }
-
-        String login = applicant.getLogin();
-        if (!validateParam(login)) {
-            logger.error("invalid login");
-            return false;
-        }
-
-        // String phone = applicant.getPhoneNumber();
-        // if(!validateParam(phone)){
-        //     logger.error("invalid phone number");
-        //     return false;
-        // }
-
-        String nameRegEx = "[a-zA-Zа-яА-Я]+([-\'][а-яА-Яa-zA-Z]+)*";
-        String surnameRegex = "[а-яА-Яa-zA-Z]+([-\'\\s][а-яА-Яa-zA-Z]+)*";
-        String emailRegEx = "(^[a-zA-Z0-9_.]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+$)";
-        String passwordRegEx = "(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z]{6,25}";
-        String loginRegEx = "[\\w._-]{6,}";
-        String phoneRegEx = "\\+[0-9]{12}";
-        String dateRegEx = "^(0[1-9]|[12][0-9]|3[01])[- \\.](0[1-9]|1[012])[- \\.](19|20)\\d\\d$";
-        String timeRegEx = "^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$";
-
-        if (!name.matches(nameRegEx)) {
-            logger.error("name is not correct");
-            return false;
-        }
-        if (!surname.matches(surnameRegex)) {
-            logger.error("surname is not correct");
-            return false;
-        }
-        if (!email.matches(emailRegEx)) {
-            logger.error("mail is not correct");
-            return false;
-        }
-        if (!password.matches(passwordRegEx)) {
-            logger.error("password is not correct");
-            return false;
-        }
-        if (!login.matches(loginRegEx)) {
-            logger.error("login is not correct");
-            return false;
-        }
-        //   if (!phone.matches(phoneRegEx)) {
-        //       logger.error("phone is not correct");
-        //       return false;
-        //   }
-
-        return true;
-    }
-
-    private boolean validateApplicantUpdateInfo(Applicant applicant) {
-
-        String name = applicant.getName();
-        if (!validateParam(name)) {
-            logger.error("invalid name");
-            return false;
-        }
-
-        String surname = applicant.getSurname();
-        if (!validateParam(surname)) {
-            logger.error("invalid surname");
-            return false;
-        }
-
-        String email = applicant.getEmail();
-        if (!validateParam(email)) {
-            logger.error("invalid email");
-            return false;
-        }
-
-        // String phone = applicant.getPhoneNumber();
-        // if(!validateParam(phone)){
-        //     logger.error("invalid phone number");
-        //     return false;
-        // }
-
-        String country = applicant.getCountry();
-        if (!validateParam(country)) {
-            logger.error("invalid country");
-            return false;
-        }
-
-        String city = applicant.getCity();
-        if (!validateParam(city)) {
-            logger.error("invalid city");
-            return false;
-        }
-
-        String education = applicant.getEducation();
-        if (!validateParam(education)) {
-            logger.error("invalid education");
-            return false;
-        }
-
-        String skills = applicant.getProfessionalSkills();
-        if (!validateParam(skills)) {
-            logger.error("invalid skills");
-            return false;
-        }
-
-        String nameRegEx = "[a-zA-Z]+([-\'][a-zA-Z]+)*";
-        String surnameRegex = "[a-zA-Z]+([-\'\\s][a-zA-Z]+)*";
-        String emailRegEx = "(([^<>()\\[\\]\\\\.,;:\\s@\"]+(\\.[^<>()\\[\\]\\\\.,;:\\s@\"]+)*)|(\".+\"))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))";
-        String countryRegEx = "[а-яa-zА-ЯA-Z]{2,}";
-        String cityRegEx = "[а-яa-zА-ЯA-Z]{2,}";
-        String phoneRegEx = "\\+[0-9]{12}";
-
-
-        if (!name.matches(nameRegEx)) {
-            logger.error("name is not correct");
-            return false;
-        }
-        if (!surname.matches(surnameRegex)) {
-            logger.error("surname is not correct");
-            return false;
-        }
-        if (!email.matches(emailRegEx)) {
-            logger.error("mail is not correct");
-            return false;
-        }
-
-        // if (!phone.matches(phoneRegEx)) {
-        //     logger.error("phone is not correct");
-        //     return false;
-        // }
-
-        if (!country.matches(countryRegEx)) {
-            logger.error("country is not correct");
-            return false;
-        }
-        if (!city.matches(cityRegEx)) {
-            logger.error("name is not correct");
-            return false;
-        }
-        return true;
-    }
-
-    private boolean validateParam(String param) {
-        if ((param == null) || (param.isEmpty())) {
-            return false;
-        }
-        return true;
+        return null;
     }
 }

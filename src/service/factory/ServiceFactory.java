@@ -25,6 +25,11 @@ public class ServiceFactory {
 
     private InterviewService interviewService = new InterviewServiceImpl();
 
+    private ApplicantSkillsService applicantSkillsService = new ApplicantSkillsServiceImpl();
+
+
+    private NewsService newsService = new NewsServiceImpl();
+
     public ApplicantService getApplicantService() {
         return applicantService;
     }
@@ -43,6 +48,14 @@ public class ServiceFactory {
 
     public InterviewService getInterviewService() {
         return interviewService;
+    }
+
+    public ApplicantSkillsService getApplicantSkillsService() {
+        return applicantSkillsService;
+    }
+
+    public NewsService getNewsService(){
+        return newsService;
     }
 
     public static ServiceFactory getInstance() {

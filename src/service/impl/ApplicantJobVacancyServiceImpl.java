@@ -8,16 +8,27 @@ import org.apache.logging.log4j.Logger;
 import service.ApplicantJobVacancyService;
 import service.exception.ServiceException;
 
+import static service.validation.ServiceValidation.*;
+
 /**
- * Created by irinaleibutina on 09.04.17.
+ * Implements {@link src.dao.ApplicantJobVacancyService}
  */
 public class ApplicantJobVacancyServiceImpl implements ApplicantJobVacancyService {
+
     private static final Logger logger = LogManager.getLogger(ApplicantJobVacancyServiceImpl.class.getName());
 
+    /**
+     * Method checks the input parameters performs a dao level call
+     * to add job vacancy info to a particular user
+     *
+     * @param applicantId
+     * @param jobVacancyId
+     * @throws ServiceException
+     */
     @Override
     public void submitApplication(String applicantId, String jobVacancyId) throws ServiceException {
 
-        if(!validateData(applicantId, jobVacancyId)){
+        if (!validateData(applicantId, jobVacancyId)) {
             throw new ServiceException("information is not correct");
         }
 
@@ -26,17 +37,29 @@ public class ApplicantJobVacancyServiceImpl implements ApplicantJobVacancyServic
         try {
             int applicantIntId = Integer.parseInt(applicantId);
             int jobVacancyIntId = Integer.parseInt(jobVacancyId);
+
+            if (!validateId(jobVacancyIntId) || !validateId(applicantIntId)) {
+                throw new ServiceException();
+            }
             applicantJobVacancyDAO.submitApplication(applicantIntId, jobVacancyIntId);
-        } catch (DAOException e) {
+        } catch (IllegalArgumentException | NullPointerException | DAOException e) {
             logger.error(e);
             throw new ServiceException(e);
         }
     }
 
+    /**
+     * Method checks the input parameters performs a dao level call
+     * to delete job vacancy info to a particular user
+     *
+     * @param applicantId
+     * @param jobVacancyId
+     * @throws ServiceException
+     */
     @Override
     public void deleteApplication(String applicantId, String jobVacancyId) throws ServiceException {
 
-        if(!validateData(applicantId, jobVacancyId)){
+        if (!validateData(applicantId, jobVacancyId)) {
             throw new ServiceException("information is not correct");
         }
 
@@ -47,22 +70,7 @@ public class ApplicantJobVacancyServiceImpl implements ApplicantJobVacancyServic
             int jobVacancyIntId = Integer.parseInt(jobVacancyId);
             applicantJobVacancyDAO.deleteApplication(applicantIntId, jobVacancyIntId);
         } catch (DAOException e) {
-            logger.error(e);
-           throw new ServiceException(e);
+            throw new ServiceException(e);
         }
-    }
-
-    private boolean validateData(String applicantId, String jobVacancyId){
-
-        if ((applicantId == null) || (applicantId.isEmpty())) {
-            logger.error("invalid applicantId");
-            return false;
-        }
-
-        if ((jobVacancyId == null) || (jobVacancyId.isEmpty())) {
-            logger.error("invalid jobVacancyId");
-            return false;
-        }
-        return true;
     }
 }
