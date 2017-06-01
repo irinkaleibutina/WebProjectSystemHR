@@ -1,10 +1,8 @@
 package bean;
 
 import java.io.Serializable;
+import java.util.List;
 
-/**
- * Created by irinaleibutina on 25.02.17.
- */
 public class Applicant implements Serializable {
 
     private String country;
@@ -13,12 +11,44 @@ public class Applicant implements Serializable {
     private String professionalSkills;
     private Interview interview;
     private int id;
+    private int interviewId;
     private String name;
     private String surname;
     private String login;
     private String password;
     private String phoneNumber;
     private String email;
+    private JobVacancy jobVacancy;
+    private List<Skill> skills;
+
+    @Override
+    public String toString() {
+        return "Applicant{" +
+                "country='" + country + '\'' +
+                ", city='" + city + '\'' +
+                ", education='" + education + '\'' +
+                ", professionalSkills='" + professionalSkills + '\'' +
+                ", interview=" + interview +
+                ", id=" + id +
+                ", interviewId=" + interviewId +
+                ", name='" + name + '\'' +
+                ", surname='" + surname + '\'' +
+                ", login='" + login + '\'' +
+                ", password='" + password + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", email='" + email + '\'' +
+                ", jobVacancy=" + jobVacancy +
+                ", skills=" + skills +
+                '}';
+    }
+
+    public List<Skill> getSkills() {
+        return skills;
+    }
+
+    public void setSkills(List<Skill> skills) {
+        this.skills = skills;
+    }
 
     public Applicant() {
     }
@@ -119,6 +149,22 @@ public class Applicant implements Serializable {
         this.email = email;
     }
 
+    public JobVacancy getJobVacancy() {
+        return jobVacancy;
+    }
+
+    public void setJobVacancy(JobVacancy jobVacancy) {
+        this.jobVacancy = jobVacancy;
+    }
+
+    public int getInterviewId() {
+        return interviewId;
+    }
+
+    public void setInterviewId(int interviewId) {
+        this.interviewId = interviewId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -157,23 +203,5 @@ public class Applicant implements Serializable {
         result = 31 * result + (phoneNumber != null ? phoneNumber.hashCode() : 0);
         result = 31 * result + (email != null ? email.hashCode() : 0);
         return result;
-    }
-
-    @Override
-    public String toString() {
-        return "Applicant{" +
-                "country='" + country + '\'' +
-                ", city='" + city + '\'' +
-                ", education='" + education + '\'' +
-                ", professionalSkills='" + professionalSkills + '\'' +
-                ", interview=" + interview +
-                ", id=" + id +
-                ", name='" + name + '\'' +
-                ", surname='" + surname + '\'' +
-                ", login='" + login + '\'' +
-                ", password='" + password + '\'' +
-                ", phoneNumber='" + phoneNumber + '\'' +
-                ", email='" + email + '\'' +
-                '}';
     }
 }

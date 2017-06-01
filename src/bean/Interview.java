@@ -2,15 +2,20 @@ package bean;
 
 import java.io.Serializable;
 
-/**
- * Created by irinaleibutina on 25.02.17.
- */
 public class Interview implements Serializable {
 
     private int id;     // maybe it's not important field
     private InterviewResult preliminaryInterview;
     private InterviewResult technicalInterview;
     private InterviewResult commonResult;
+    private String datePreInt;
+    private String timePreInt;
+
+    private String dateTecInt;
+    private String timeTecInt;
+
+
+
     private String notes;
 
     public Interview() {
@@ -56,6 +61,38 @@ public class Interview implements Serializable {
         this.notes = notes;
     }
 
+    public String getDatePreInt() {
+        return datePreInt;
+    }
+
+    public void setDatePreInt(String datePreInt) {
+        this.datePreInt = datePreInt;
+    }
+
+    public String getTimePreInt() {
+        return timePreInt;
+    }
+
+    public void setTimePreInt(String timePreInt) {
+        this.timePreInt = timePreInt;
+    }
+
+    public String getDateTecInt() {
+        return dateTecInt;
+    }
+
+    public void setDateTecInt(String dateTecInt) {
+        this.dateTecInt = dateTecInt;
+    }
+
+    public String getTimeTecInt() {
+        return timeTecInt;
+    }
+
+    public void setTimeTecInt(String timeTecInt) {
+        this.timeTecInt = timeTecInt;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -87,6 +124,10 @@ public class Interview implements Serializable {
                 ", preliminaryInterview=" + preliminaryInterview +
                 ", technicalInterview=" + technicalInterview +
                 ", commonResult=" + commonResult +
+                ", datePreInt='" + datePreInt + '\'' +
+                ", timePreInt='" + timePreInt + '\'' +
+                ", dateTecInt='" + dateTecInt + '\'' +
+                ", timeTecInt='" + timeTecInt + '\'' +
                 ", notes='" + notes + '\'' +
                 '}';
     }

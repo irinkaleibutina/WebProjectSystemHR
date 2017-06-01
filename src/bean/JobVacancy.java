@@ -2,15 +2,16 @@ package bean;
 
 import java.io.Serializable;
 
-/**
- * Created by irinaleibutina on 25.02.17.
- */
 public class JobVacancy implements Serializable {
 
     private int id;
     private String jobTitle;
     private String currentStatus;
     private String description;
+
+    private String country;
+    private String city;
+
 
     public JobVacancy() {
     }
@@ -45,6 +46,23 @@ public class JobVacancy implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+
+    public String getCountry() {
+        return country;
+    }
+
+    public void setCountry(String country) {
+        this.country = country;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
     }
 
     @Override

@@ -2,9 +2,6 @@ package bean;
 
 import java.io.Serializable;
 
-/**
- * Created by irinaleibutina on 25.02.17.
- */
 public class EmployeeHR implements Serializable {
 
     private String workId;
