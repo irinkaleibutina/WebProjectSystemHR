@@ -15,35 +15,43 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static controller.util.ParametersName.*;
+
 /**
- * Created by irinaleibutina on 4/12/17.
+ * Instance of {@link Command}
  */
 public class UpdateApplicant implements Command {
     private static final Logger logger = LogManager.getLogger(UpdateApplicant.class.getName());
 
-    private static final String ATTR_APPLICANT  = "applicant";
-    private static final String COUNTRY = "country";
-    private static final String CITY = "city";
-    private static final String NAME = "name";
-    private static final String SURNAME = "surname";
-    private static final String EMAIL = "email";
-    private static final String PHONE = "phone";
-    private static final String ATTR_ERROR = "error";
-    private static final String ERROR_PAGE = "/WEB-INF/jsp/error.jsp";
+    private static final String SHOW_PAGE = "/WEB-INF/jsp/profile.jsp";
 
+    /**
+     * Performs a service level call to update applicant info
+     *
+     * @param request  contains a user request object
+     * @param response will be send to the client
+     * @throws IOException
+     * @throws ServletException
+     */
     @Override
     public void execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
         Applicant applicant = new Applicant();
-        applicant = (Applicant) request.getSession(true).getAttribute(ATTR_APPLICANT);
+        applicant = (Applicant) request.getSession(true).getAttribute(APPLICANT);
         applicant.setCountry(request.getParameter(COUNTRY));
         applicant.setEmail(request.getParameter(EMAIL));
-        // Add parametrs
+        applicant.setCity(request.getParameter(CITY));
+        applicant.setName(request.getParameter(NAME));
+        applicant.setSurname(request.getParameter(SURNAME));
+        applicant.setPhoneNumber(request.getParameter(PHONE));
 
         ServiceFactory serviceFactory = ServiceFactory.getInstance();
         ApplicantService applicantService = serviceFactory.getApplicantService();
         try {
             applicantService.updateInfo(applicant);
+
+            RequestDispatcher requestDispatcher = request.getRequestDispatcher(SHOW_PAGE);
+            requestDispatcher.forward(request, response);
         } catch (ServiceException e) {
             logger.error(e);
             request.setAttribute(ATTR_ERROR, e);

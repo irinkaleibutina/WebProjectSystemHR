@@ -1,11 +1,10 @@
 package controller.command.impl;
 
-import bean.JobVacancy;
+import bean.Content;
 import controller.command.Command;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import service.JobVacancyService;
+import service.NewsService;
 import service.exception.ServiceException;
 import service.factory.ServiceFactory;
 
@@ -21,14 +20,14 @@ import static controller.util.ParametersName.*;
 /**
  * Instance of {@link Command}
  */
-public class ShowVacancies implements Command {
-    private static final Logger logger = LogManager.getLogger();
+public class TakeNews implements Command {
+    private static final Logger logger = LogManager.getLogger(TakeNews.class.getName());
 
-    private static final String SHOW_PAGE = "/WEB-INF/jsp/take_all_vacancies.jsp";
-    private static final String ATTR_FAIL = "fail_take_vac";
+    private static final String SHOW_PAGE = "/WEB-INF/jsp/take_all_news.jsp";
+    private static final String ATTR_FAIL = "take_news";
 
     /**
-     * Performs a service level call to get all vacancies
+     * Performs a service level call to get all news
      *
      * @param request  contains a user request object
      * @param response will be send to the client
@@ -36,19 +35,22 @@ public class ShowVacancies implements Command {
      * @throws ServletException
      */
     @Override
-    public void execute(HttpServletRequest request, HttpServletResponse response)
-            throws IOException, ServletException {
-        try {
-            ServiceFactory factory = ServiceFactory.getInstance();
-            JobVacancyService service = factory.getJobVacancyService();
-            List<JobVacancy> vacancies = service.getVacancies();
+    public void execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-            if (vacancies.isEmpty()) {
-                request.setAttribute(ATTR_FAIL, "Vacancies not found");
+        List<Content> contents;
+
+        ServiceFactory serviceFactory = ServiceFactory.getInstance();
+        NewsService newsService = serviceFactory.getNewsService();
+
+        try {
+            contents = newsService.getNews();
+
+            if (contents.isEmpty()) {
+                request.setAttribute(ATTR_FAIL, "News are not available");
                 RequestDispatcher requestDispatcher = request.getRequestDispatcher(ERROR_PAGE);
                 requestDispatcher.forward(request, response);
             } else {
-                request.setAttribute(VACANCY, vacancies);
+                request.setAttribute(NEWS_LIST, contents);
                 RequestDispatcher requestDispatcher = request.getRequestDispatcher(SHOW_PAGE);
                 requestDispatcher.forward(request, response);
             }

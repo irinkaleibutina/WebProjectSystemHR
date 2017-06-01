@@ -11,18 +11,22 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import static controller.util.ParametersName.*;
 
 /**
- * Created by irinaleibutina on 19.03.17.
+ * Instance of {@link Command}
  */
 public class ChangeLocale implements Command {
     private static final Logger logger = LogManager.getLogger(ChangeLocale.class.getName());
 
-    private static final String ATTR_LOCALE = "locale";
-    public static final String ATTR_LANG = "lang";
-
-    private static final String INDEX_PAGE = "/";
-
+    /**
+     * Method changes locale for application
+     *
+     * @param request  contains a user request object
+     * @param response will be send to the client
+     * @throws IOException
+     * @throws ServletException
+     */
     @Override
     public void execute(HttpServletRequest request, HttpServletResponse response)
             throws IOException {

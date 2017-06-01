@@ -9,13 +9,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static controller.util.ParametersName.*;
+
 /**
- * Created by irinaleibutina on 05.04.17.
+ * Instance of {@link Command}
  */
 public class Redirect implements Command {
-    public final static String JSP_DIR = "/WEB-INF/jsp/";
-    public final static String ATTR_PAGE = "page";
 
+    /**
+     * Method allows to redirect to other page
+     *
+     * @param request  contains a user request object
+     * @param response will be send to the client
+     * @throws IOException
+     * @throws ServletException
+     */
     @Override
     public void execute(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {

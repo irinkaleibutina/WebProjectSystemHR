@@ -1,11 +1,11 @@
 package controller.command.impl;
 
-import bean.JobVacancy;
+import bean.Content;
 import controller.command.Command;
-
+import controller.command.CommandName;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import service.JobVacancyService;
+import service.NewsService;
 import service.exception.ServiceException;
 import service.factory.ServiceFactory;
 
@@ -14,21 +14,23 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
 
+import static controller.util.ParametersName.ATTR_ERROR;
+import static controller.util.ParametersName.ERROR_PAGE;
 import static controller.util.ParametersName.*;
 
 /**
  * Instance of {@link Command}
  */
-public class ShowVacancies implements Command {
-    private static final Logger logger = LogManager.getLogger();
+public class GetNews implements Command {
+    private static final Logger logger = LogManager.getLogger(GetNews.class.getName());
 
-    private static final String SHOW_PAGE = "/WEB-INF/jsp/take_all_vacancies.jsp";
-    private static final String ATTR_FAIL = "fail_take_vac";
+    private static final String SHOW_PAGE = "/WEB-INF/jsp/show_news.jsp";
+    private static final String ATTR_FAIL = "fail_get_news";
+    private int newsId;
 
     /**
-     * Performs a service level call to get all vacancies
+     * Performs a service level call to get news
      *
      * @param request  contains a user request object
      * @param response will be send to the client
@@ -36,23 +38,27 @@ public class ShowVacancies implements Command {
      * @throws ServletException
      */
     @Override
-    public void execute(HttpServletRequest request, HttpServletResponse response)
-            throws IOException, ServletException {
-        try {
-            ServiceFactory factory = ServiceFactory.getInstance();
-            JobVacancyService service = factory.getJobVacancyService();
-            List<JobVacancy> vacancies = service.getVacancies();
+    public void execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-            if (vacancies.isEmpty()) {
-                request.setAttribute(ATTR_FAIL, "Vacancies not found");
+        ServiceFactory serviceFactory = ServiceFactory.getInstance();
+        NewsService newsService = serviceFactory.getNewsService();
+
+        Content content = null;
+        try {
+            newsId = Integer.parseInt(request.getParameter(NEWS_ID));
+            content = newsService.getNews(newsId);
+
+            if (content == null) {
+                request.setAttribute(ATTR_FAIL, "Describe of news is not available");
                 RequestDispatcher requestDispatcher = request.getRequestDispatcher(ERROR_PAGE);
                 requestDispatcher.forward(request, response);
             } else {
-                request.setAttribute(VACANCY, vacancies);
+                content.setNewsId(newsId);
+                request.setAttribute(CURRENT_NEWS, content);
                 RequestDispatcher requestDispatcher = request.getRequestDispatcher(SHOW_PAGE);
                 requestDispatcher.forward(request, response);
             }
-        } catch (ServiceException e) {
+        } catch (IllegalArgumentException | NullPointerException | ServiceException e) {
             logger.error(e);
             request.setAttribute(ATTR_ERROR, e);
             RequestDispatcher requestDispatcher = request.getRequestDispatcher(ERROR_PAGE);

@@ -1,10 +1,6 @@
 package controller;
 
 import controller.command.Command;
-import controller.command.exception.CommandException;
-import dao.exception.DAOException;
-
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -13,13 +9,15 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Created by irinaleibutina on 19.02.17.
+ * Front controller of the application
+ *
+ * Handles HTTP requests and HTTP response to certain instance of
+ * {@link Command}
  */
-
 @WebServlet(name = "Controller")
 public class Controller extends HttpServlet {
+
     private static final String COMMAND = "command";
-    private static final String ERROR="/WEB-INF/jsp/error.jsp";
 
     private final CommandProvider provider = new CommandProvider();
 
@@ -27,43 +25,52 @@ public class Controller extends HttpServlet {
         super();
     }
 
+    /**
+     * Called by the server to handle client GET request type
+     *
+     * Delegates request processing to
+     * {@link #processRequest(HttpServletRequest, HttpServletResponse)}
+     *
+     * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
+     *      response)
+     */
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String goTo = null;
-        String commandName = null;
-        Command command = null;
-
-        System.out.println("in java get");
-
-        try {
-            commandName = request.getParameter(COMMAND);
-            command = provider.getCommand(commandName);
-            goTo = command.execute(request,response);
-            RequestDispatcher dispatcher = request.getRequestDispatcher(goTo);
-
-            dispatcher.forward(request, response);
-        } catch (CommandException e) {
-            request.getRequestDispatcher(ERROR).forward(request, response);
-        } catch (DAOException e) {
-            e.printStackTrace();
-        }
+        processRequest(request, response);
     }
 
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String goTo = null;
+    /**
+     * Called by the server to handle client POST request type
+     *
+     * Delegates request processing to
+     * {@link #processRequest(HttpServletRequest, HttpServletResponse)}
+     *
+     * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
+     *      response)
+     */
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+        processRequest(request, response);
+    }
+
+    /**
+     * Method, which processing both POST and GET request from a server client.
+     * and return the response.
+     *
+     * Defining type of command, getting certain instance of {@link Command}
+     * and execute it.
+     *
+     * @param request
+     *            contains the request object of a server client
+     * @param response
+     *            contains the response object which will be send to the client
+     * @throws ServletException
+     * @throws IOException
+     */
+    private void processRequest(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+
         String commandName = null;
         Command command = null;
-
-
-        System.out.println("in java post");
-        try {
-            commandName = request.getParameter(COMMAND);
-            command = provider.getCommand(commandName);
-            goTo = command.execute(request, response);
-            response.sendRedirect(goTo);
-        } catch (CommandException e) {
-            request.getRequestDispatcher(ERROR).forward(request, response);
-        } catch (DAOException e) {
-            e.printStackTrace();
-        }
+        commandName = request.getParameter(COMMAND);
+        command = provider.getCommand(commandName);
+        command.execute(request, response);
     }
 }

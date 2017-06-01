@@ -17,32 +17,48 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
 
+import static controller.util.ParametersName.*;
+
 /**
- * Created by irinaleibutina on 4/11/17.
+ * Instance of {@link Command}
  */
 public class ShowAdmins implements Command {
     private static final Logger logger = LogManager.getLogger(ShowAdmins.class.getName());
 
     private static final String SHOW_PAGE = "/WEB-INF/jsp/admins.jsp";
-    private static final String ATTR_ADMINS = "admins_list";
-    private static final String ATTR_ERROR = "error";
-    private static final String ERROR_PAGE = "/WEB-INF/jsp/error.jsp";
+    private static final String ATTR_FAIL = "fail_take_admins";
 
+    /**
+     * Performs a service level call to get all admins
+     *
+     * @param request  contains a user request object
+     * @param response will be send to the client
+     * @throws IOException
+     * @throws ServletException
+     */
     @Override
-    public void execute(HttpServletRequest request, HttpServletResponse response) throws  IOException, ServletException {
+    public void execute(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
 
         ServiceFactory factory = ServiceFactory.getInstance();
         EmployeeService employeeService = factory.getEmployeeService();
         try {
             List<EmployeeHR> employeeHRS = employeeService.getEmployees();
-            request.setAttribute(ATTR_ADMINS, employeeHRS);
-        } catch (ServiceException e){
+            request.setAttribute(ADMINS, employeeHRS);
+
+            if (employeeHRS.isEmpty()) {
+                request.setAttribute(ATTR_FAIL, "Admins not found");
+                RequestDispatcher requestDispatcher = request.getRequestDispatcher(ERROR_PAGE);
+                requestDispatcher.forward(request, response);
+            } else {
+                RequestDispatcher requestDispatcher = request.getRequestDispatcher(SHOW_PAGE);
+                requestDispatcher.forward(request, response);
+            }
+
+        } catch (ServiceException e) {
             logger.error(e);
             request.setAttribute(ATTR_ERROR, e);
             RequestDispatcher requestDispatcher = request.getRequestDispatcher(ERROR_PAGE);
             requestDispatcher.forward(request, response);
         }
-        RequestDispatcher requestDispatcher = request.getRequestDispatcher(SHOW_PAGE);
-        requestDispatcher.forward(request, response);
     }
 }

@@ -9,12 +9,20 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * Created by irinaleibutina on 28.03.17.
+ * Instance of {@link Command}
  */
 public class SignOut implements Command {
 
-    private static final String MAIN_PAGE="Controller?command=show_vacancies";
+    private static final String MAIN_PAGE="Controller?command=main_page";
 
+    /**
+     * Method allows to sign out from application
+     *
+     * @param request  contains a user request object
+     * @param response will be send to the client
+     * @throws IOException
+     * @throws ServletException
+     */
     @Override
     public void execute(HttpServletRequest request, HttpServletResponse response)
             throws IOException {

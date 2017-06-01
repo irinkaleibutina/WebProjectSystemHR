@@ -1,9 +1,11 @@
 package controller.command.impl;
 
+import bean.Applicant;
 import bean.EmployeeHR;
 import controller.command.Command;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import service.ApplicantService;
 import service.EmployeeService;
 import service.exception.ServiceException;
 import service.factory.ServiceFactory;
@@ -13,17 +15,18 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-
 import static controller.util.ParametersName.*;
 
 /**
  * Instance of {@link Command}
  */
-public class AddAdmin implements Command {
-    private static final Logger logger = LogManager.getLogger(AddAdmin.class.getName());
+public class GetApplicantInfo implements Command {
+    private static final Logger logger = LogManager.getLogger(GetApplicantInfo.class.getName());
+
+    private static final String PROFILE_PAGE = "/WEB-INF/jsp/profile.jsp";
 
     /**
-     * Performs a service level call to add new employee
+     * Performs a service level call to get info about applicant
      *
      * @param request  contains a user request object
      * @param response will be send to the client
@@ -31,22 +34,19 @@ public class AddAdmin implements Command {
      * @throws ServletException
      */
     @Override
-    public void execute(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+    public void execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+        Applicant applicant = new Applicant();
+        applicant = (Applicant) request.getSession(true).getAttribute(APPLICANT);
 
         ServiceFactory serviceFactory = ServiceFactory.getInstance();
-        EmployeeService employeeService = serviceFactory.getEmployeeService();
-
-        EmployeeHR employeeHR = new EmployeeHR();
-        employeeHR.setName(request.getParameter(NAME));
-        employeeHR.setSurname(request.getParameter(SURNAME));
-        employeeHR.setEmail(request.getParameter(EMAIL));
-        employeeHR.setPhoneNumber(request.getParameter(PHONE));
-        employeeHR.setWorkId(request.getParameter(WORK_ID));
-        employeeHR.setLogin(request.getParameter(LOGIN));
-        employeeHR.setPassword(request.getParameter(PASSWORD));
-
+        ApplicantService applicantService = serviceFactory.getApplicantService();
         try {
-            employeeService.employeeRegistration(employeeHR);
+            applicant = applicantService.getActualInformation(applicant.getLogin());
+
+            request.getSession(true).setAttribute(APPLICANT, applicant);
+            RequestDispatcher requestDispatcher = request.getRequestDispatcher(PROFILE_PAGE);
+            requestDispatcher.forward(request, response);
         } catch (ServiceException e) {
             logger.error(e);
             request.setAttribute(ATTR_ERROR, e);

@@ -14,23 +14,29 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import static controller.util.ParametersName.*;
 
 /**
- * Created by irinaleibutina on 09.04.17.
+ * Instance of {@link Command}
  */
 public class SubmitApplication implements Command {
     private static final Logger logger = LogManager.getLogger(SubmitApplication.class.getName());
 
-    private static final String ATTR_APPLICANT= "applicant";
-    private static final String JOB_VACANCY_ID = "item";
-    private static final String ATTR_ERROR = "error";
-    private static final String ERROR_PAGE = "/WEB-INF/jsp/error.jsp";
+    private static final String SHOW_PAGE = "Controller?command=get_applicant";
 
+    /**
+     * Performs a service level call to add apply to concrete applicant
+     *
+     * @param request  contains a user request object
+     * @param response will be send to the client
+     * @throws IOException
+     * @throws ServletException
+     */
     @Override
     public void execute(HttpServletRequest request, HttpServletResponse response) throws  IOException, ServletException {
 
         Applicant applicant = new Applicant();
-        applicant = (Applicant) request.getSession(true).getAttribute(ATTR_APPLICANT);
+        applicant = (Applicant) request.getSession(true).getAttribute(APPLICANT);
         String applicantId = ""+applicant.getId();
         String jobVacancyId = request.getParameter(JOB_VACANCY_ID);
 
@@ -38,11 +44,13 @@ public class SubmitApplication implements Command {
         ApplicantJobVacancyService applicantJobVacancyService = serviceFactory.getApplicantJobVacancyService();
         try {
             applicantJobVacancyService.submitApplication(applicantId, jobVacancyId);
+            response.sendRedirect(SHOW_PAGE);
         } catch (ServiceException e) {
             logger.error(e);
             request.setAttribute(ATTR_ERROR, e);
             RequestDispatcher requestDispatcher = request.getRequestDispatcher(ERROR_PAGE);
             requestDispatcher.forward(request, response);
         }
+
     }
 }

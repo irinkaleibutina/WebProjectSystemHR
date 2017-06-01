@@ -2,7 +2,6 @@ package controller.command.impl;
 
 import bean.JobVacancy;
 import controller.command.Command;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import service.JobVacancyService;
@@ -14,21 +13,21 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
 
 import static controller.util.ParametersName.*;
 
 /**
  * Instance of {@link Command}
  */
-public class ShowVacancies implements Command {
-    private static final Logger logger = LogManager.getLogger();
+public class SearchVacancy implements Command {
 
-    private static final String SHOW_PAGE = "/WEB-INF/jsp/take_all_vacancies.jsp";
-    private static final String ATTR_FAIL = "fail_take_vac";
+    private static final Logger logger = LogManager.getLogger(SearchVacancy.class.getName());
+
+    private static final String SHOW_PAGE = "/WEB-INF/jsp/show_vacancy.jsp";
+    private static final String ATTR_FAIL = "fail_search_vac";
 
     /**
-     * Performs a service level call to get all vacancies
+     * Performs a service level call to search vacancy
      *
      * @param request  contains a user request object
      * @param response will be send to the client
@@ -36,19 +35,23 @@ public class ShowVacancies implements Command {
      * @throws ServletException
      */
     @Override
-    public void execute(HttpServletRequest request, HttpServletResponse response)
-            throws IOException, ServletException {
-        try {
-            ServiceFactory factory = ServiceFactory.getInstance();
-            JobVacancyService service = factory.getJobVacancyService();
-            List<JobVacancy> vacancies = service.getVacancies();
+    public void execute(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-            if (vacancies.isEmpty()) {
-                request.setAttribute(ATTR_FAIL, "Vacancies not found");
+        String title = request.getParameter(TITLE);
+        ServiceFactory serviceFactory = ServiceFactory.getInstance();
+        JobVacancyService jobVacancyService = serviceFactory.getJobVacancyService();
+
+        JobVacancy jobVacancy  =  null;
+        try {
+            jobVacancy  = jobVacancyService.searchVacancy(title);
+            request.setAttribute(ATTR_VACANCY, jobVacancy);
+
+            if(jobVacancy == null){
+                request.setAttribute(ATTR_FAIL, "Such user is exist");
                 RequestDispatcher requestDispatcher = request.getRequestDispatcher(ERROR_PAGE);
                 requestDispatcher.forward(request, response);
-            } else {
-                request.setAttribute(VACANCY, vacancies);
+            }
+            else {
                 RequestDispatcher requestDispatcher = request.getRequestDispatcher(SHOW_PAGE);
                 requestDispatcher.forward(request, response);
             }
