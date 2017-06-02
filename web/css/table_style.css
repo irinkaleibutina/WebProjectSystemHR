@@ -1,0 +1,102 @@
+*, *:before, *:after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+    background: #fff;
+}
+
+input, button {
+    border: none;
+    outline: none;
+    background: none;
+    font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+}
+
+button {
+    display: block;
+    margin: 0 auto;
+    padding: 10px 2px;
+    width: 140px;
+    height: 36px;
+    border-radius: 30px;
+    color: #fff;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+h2 {
+    width: 100%;
+    font-size: 26px;
+    text-align: center;
+}
+
+label {
+    display: block;
+    width: 260px;
+    margin: 25px auto 0;
+    text-align: center;
+}
+
+label span {
+    font-size: 12px;
+    color: #cfcfcf;
+    text-transform: uppercase;
+}
+
+.input_data, .invalid {
+    display: block;
+    width: 100%;
+    margin-top: 5px;
+    padding-bottom: 5px;
+    font-size: 16px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.4);
+    text-align: center;
+}
+
+.submit {
+    margin-top: 40px;
+    margin-bottom: 20px;
+    background: lightsalmon;
+    text-transform: uppercase;
+}
+
+.success {
+    font-family: 'Open Sans', Helvetica, Arial, sans-serif;
+    color: lightsalmon;
+}
+
+.applicant_table {
+    text-align: center;
+    margin: 60px;
+}
+
+
+.column_title, .table_title{
+
+    text-align: center;
+    color: #1c293a;
+    text-decoration: none;
+    /*padding: .8em 1.8em;*/
+    text-transform: uppercase;
+    font-size: 100%;
+    letter-spacing: 3px;
+
+    position: relative;
+}
+
+.table_title{
+    font-size: 120%;
+    font-weight:bold;
+}
+
+#ourtable {
+    border-collapse: collapse
+}
+
+#ourtable, #ourtable td {
+    border: 1px solid lightsalmon
+}

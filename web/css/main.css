@@ -1,0 +1,234 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+nav ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.nav a.menu {
+    display: block;
+    background: #fff;
+    color: #1c293a;
+    text-decoration: none;
+    padding: .8em 1.8em;
+    text-transform: uppercase;
+    font-size: 100%;
+    letter-spacing: 3px;
+
+    position: relative;
+}
+
+.nav {
+    vertical-align: top;
+    display: inline-block;
+    top: 0;
+    width: 100%;
+    padding-left:20px;
+}
+
+.nav li.form {
+    float: right;
+}
+
+.nav li {
+    position: relative;
+}
+
+.nav > li {
+    float: left;
+    margin-right: 1px;
+}
+
+.nav > li > a {
+    margin-bottom: 1px;
+}
+
+.nav > li:hover, .nav > li:hover > a {
+    border-bottom-color: orange;
+}
+
+.nav li:hover > a {
+    color: orange;
+}
+
+.nav > li:first-child {
+    border-radius: 4px 0 0 4px;
+}
+
+.nav > li:first-child > a {
+    border-radius: 4px 0 0 0;
+}
+
+.nav > li:last-child {
+    border-radius: 0 0 4px 0;
+    margin-right: 0;
+}
+
+.nav > li:last-child > a {
+    border-radius: 0 4px 0 0;
+}
+
+.nav li li a {
+    margin-top: 1px
+}
+
+.nav li a:first-child:nth-last-child(2):before {
+    content: "";
+    position: absolute;
+    height: 0;
+    width: 0;
+    border: 5px solid transparent;
+    top: 50%;
+    right: 5px;
+}
+
+
+/* submenu positioning*/
+.nav ul {
+    position: absolute;
+    white-space: nowrap;
+    border-bottom: 3px solid orange;
+    z-index: 1;
+    left: -99999em;
+}
+
+.nav > li:hover > ul {
+    left: auto;
+    padding-top: 5px;
+    min-width: 100%;
+}
+
+.nav > li li ul {
+    border-left: 1px solid #fff;
+}
+
+.nav > li li:hover > ul {
+    /* margin-left: 1px */
+    left: 100%;
+    top: -1px;
+}
+
+/* arrow hover styling */
+.nav > li > a:first-child:nth-last-child(2):before {
+    border-top-color: #aaa;
+}
+
+.nav > li:hover > a:first-child:nth-last-child(2):before {
+    border: 5px solid transparent;
+    border-bottom-color: orange;
+    margin-top: -5px
+}
+
+.nav li li > a:first-child:nth-last-child(2):before {
+    border-left-color: #aaa;
+    margin-top: -5px
+}
+
+.nav li li:hover > a:first-child:nth-last-child(2):before {
+    border: 5px solid transparent;
+    border-right-color: orange;
+    right: 10px;
+}
+
+.vacancies {
+    text-align: center;
+    color: #1c293a;
+
+    text-decoration: none;
+    padding: .8em 1.8em;
+    text-transform: uppercase;
+    font-size: 100%;
+    letter-spacing: 3px;
+
+    position: relative;
+}
+
+.news {
+    text-align: center;
+}
+
+.v {
+    float: left;
+    margin: 5px;
+    padding: 15px;
+    width: 340px;
+    height: 170px;
+    border: 3px solid #FFA562;
+
+}
+
+.error-message{
+    display: none;
+    color: red;
+    font-size: 12px;
+}
+
+@media only screen {
+  html,
+  body {
+ /*   background: #222;*/
+    /*overflow: hidden;*/
+    /*height: 100%;*/
+  }
+
+ .nav a.logo {
+
+
+
+    text-decoration: none;
+
+    font-size: 2rem;
+    font-family: 'sonos-logoregular';
+    text-align: center;
+    background: -webkit-linear-gradient(left, #33235B, #D62229, #E97639, #792042, #33235B);
+    background: linear-gradient(left, #33235B, #D62229, #E97639, #792042, #33235B);
+    background-size: 1200px 200px;
+   /* margin-top: 20vh;*/
+    color: transparent;
+    -webkit-background-clip: text;
+    -webkit-animation: animate-logo;
+    -webkit-animation-delay: 0s;
+    -webkit-animation-duration: 5s;
+    -webkit-animation-timing-function: linear;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-fill-mode: forwards;
+    transition: font-size 500ms ease-in-out;
+  }
+}
+/*@media only screen and (min-width: 40.063em) {
+.nav a.logo {
+    margin-top: 30vh;
+    font-size: 13rem;
+  }
+}
+@media only screen and (min-width: 64.063em) {
+.nav a.logo {
+    margin-top: 25vh;
+    font-size: 20rem;
+  }
+}
+@media only screen and (min-width: 90.063em) {
+.nav a.logo{
+    margin-top: 20vh;
+    font-size: 30rem;
+  }
+}
+@media only screen and (min-width: 120.063em) {
+.nav a.logo{
+    margin-top: 15vh;
+    font-size: 40rem;
+  }
+}
+*/
+@-webkit-keyframes animate-logo {
+  0% {
+    background-position: 0 1200px;
+  }
+  100% {
+    background-position: 1200px 0;
+  }
+}

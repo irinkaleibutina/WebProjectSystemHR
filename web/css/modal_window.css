@@ -1,0 +1,72 @@
+.modalDialog {
+    position: fixed;
+    font-family: Arial, Helvetica, sans-serif;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.8);
+
+    z-index: 99999;
+    -webkit-transition: opacity 400ms ease-in;
+    -moz-transition: opacity 400ms ease-in;
+    transition: opacity 400ms ease-in;
+    display: none;
+    pointer-events: none;
+}
+
+.modalDialog:target {
+    display: block;
+    pointer-events: auto;
+}
+
+
+.modalDialog > div {
+    background: #ededed;
+    position: relative;
+    margin: 10% auto;
+    padding: 5px 20px 13px 20px;
+    border-radius: 10px;
+}
+
+.add_vacancy > div {
+    margin: 5% auto;
+    width: 800px;
+    height: 700px;
+
+}
+
+.add_new > div {
+    width: 500px;
+    height: 500px;
+}
+
+.add_admin > div {
+    margin: 0 auto;
+    width: 800px;
+    height: 820px;
+
+}
+.delete_apply > div{
+    width: 400px;
+    height: 300px;
+}
+.search_vac > div {
+    width: 500px;
+    height: 400px;
+}
+
+.search_appl > div{
+    width: 500px;
+    height: 400px;
+}
+
+.delete_vac > div{
+    width: 400px;
+    height: 300px;
+}
+
+.search_news > div{
+    width: 500px;
+    height: 400px;
+}
